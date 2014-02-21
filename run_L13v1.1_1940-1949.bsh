@@ -1,0 +1,37 @@
+#!/bin/bash
+
+#
+# Submit modeling runs (once forcing-availability/soil-file-prep/etc. setup)
+#
+# Should be able to later run various parts in parallel|series by submitting like: rcp45/CanESM2/part_*/aj_vic.bsh.qsub
+# The respective aj_vic.bsh.qsub(s) will be aware of GCM/scenario timing and location to run
+#
+
+#runpath=rcp45/CanESM2; runpart=part_02; force_startyear=2006; sim_startyear=2006; sim_endyear=2016
+#runpath=historical/CanESM2; runpart="wus_full.1"; force_startyear=1950; sim_startyear=1950; sim_endyear=1960
+#runpath=historical/CanESM2; runpart="wus_full.2"; force_startyear=1950; sim_startyear=1950; sim_endyear=2005; 
+#    inittime="19601231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2/simulator/historical/CanESM2/wus_full.1/stateout"
+#runpath=rcp45/CanESM2; runpart=wus_full.1; force_startyear=2006; sim_startyear=2006; sim_endyear=2100
+#    inittime="20051231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2/simulator/historical/CanESM2/wus_full.2/stateout"
+#runpath=rcp85/CanESM2; runpart=wus_full.1; force_startyear=2006; sim_startyear=2006; sim_endyear=2100
+#    inittime="20051231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2/simulator/historical/CanESM2/wus_full.2/stateout"
+
+#global_template: changed forcing prefix frc4_->data_; removed NOLEAP b/c not in VIC-git master yet.
+global_template=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/global.template/global.param.4.1.2.k.flux.L13v1.1 
+vicdir=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/viclib/vic.4.1.2.k/VIC/src #vicdir
+force_dir=/raid3/stumbaugh/L14/forcings #rcp45/CanESM2 #force_dir
+export VICGLOBAL=$global_template VICDIR=$vicdir FORCEDIR=$force_dir
+runpath=historical/L13v1.1 # usually used in forcing location but here not since Ben's
+runpart="wus_full.1"; force_startyear=1915; sim_startyear=1940; sim_endyear=1949
+
+echo "runpath:" $runpath
+echo "runpart:" $runpart
+echo "force_startyear:" $force_startyear
+echo "sim_startyear:" $sim_startyear
+echo "sim_endyear:" $sim_endyear
+cmd=$(echo scripts/run_aj_vic.bsh $runpath $runpart $force_startyear $sim_startyear $sim_endyear $initpath $inittime)
+echo "cmd:" $cmd
+eval $cmd
+echo "Job waiting to be manually submitted:"
+#(cd /raid3/stumbaugh/IS/CONUS/v2/simulator/rcp45/CanESM2/part_02; qsub aj_vic.bsh.qsub)
+echo '(cd '$runpath/$runpart'; '"qsub aj_vic.bsh.qsub"')'

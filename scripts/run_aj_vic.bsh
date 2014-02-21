@@ -1,0 +1,109 @@
+#!/bin/bash
+
+#./run_aj_vic.bsh > log_run_aj_vic.txt
+
+#STARTYEAR xxSTARTYEARxx
+#ENDYEAR xxENDYEARxx
+#FORCING1 xxFORCEDIRxx/frc4_
+#FORCEYEAR xxFORCYEARxx
+#SOIL xxSOILFILExx
+#VEGPARAM xxVEGPARAMxx
+#SNOW_BAND 5
+#RESULT_DIR xxRESULTDIRxx
+basedir=/home/raid3/stumbaugh/IS/CONUS/v2/simulator
+runpath=$1 #rcp45/CanESM2
+runpart=$2 #part_01
+rundir=$basedir/$runpath/$runpart
+
+force_startyear=$3
+sim_startyear=$4
+sim_endyear=$5
+
+#sim_startyear=2006
+#sim_endyear=2016
+#force_startyear=2006
+
+soildir=$rundir/avail.soil.splits/splitlists
+
+
+scriptsdir=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/scripts
+
+#global_template=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/global.template/global.param.4.1.2.g.noleap.flux.macav2
+#vicdir=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/viclib/vic.4.1.2.g.noleap.1/VIC/src
+#force_dir=/home/raid3/stumbaugh/IS/CONUS/v2/vicfrc/cat4/$runpath #rcp45/CanESM2
+global_template=$VICGLOBAL
+vicdir=$VICDIR
+force_dir=$FORCEDIR
+
+dir_children=$rundir/globals/children
+
+
+mkdir -p $dir_children $rundir/logs $rundir/fluxes
+
+global_base=$(basename $global_template)
+cp $global_template $rundir/globals/$global_base".template"
+
+
+sed 's|xxSTARTYEARxx|'$sim_startyear'|g' $rundir/globals/$global_base".template" > $rundir/globals/$global_base
+sed -i 's|xxENDYEARxx|'$sim_endyear'|g' $rundir/globals/$global_base
+sed -i 's|xxFORCEDIRxx|'$force_dir'|g' $rundir/globals/$global_base
+sed -i 's|xxFORCEYEARxx|'$force_startyear'|g' $rundir/globals/$global_base
+sed -i 's|xxVEGPARAMxx|'$rundir/veg_avail.txt'|g' $rundir/globals/$global_base
+sed -i 's|xxSNOWBANDxx|'$rundir/snow_avail.txt'|g' $rundir/globals/$global_base
+sed -i 's|xxRESULTDIRxx|'$rundir/fluxes'|g' $rundir/globals/$global_base
+
+#STARTYEAR xxSTARTYEARxx
+#ENDYEAR xxENDYEARxx
+#FORCING1 xxFORCEDIRxx/frc4_
+#FORCEYEAR xxFORCYEARxx
+#SOIL xxSOILFILExx
+#VEGPARAM xxVEGPARAMxx
+#SNOW_BAND 5
+#RESULT_DIR xxRESULTDIRxx
+
+
+istart=0
+njobs=$(ls $soildir | wc -l)
+iend=$(echo "$njobs-1" | bc -l)
+#nyears=$(echo "$endyr-$startyr+1" | bc -l)
+#njobs=$(echo "$iend-$istart+1" | bc -l)
+
+mkdir $rundir/stateout
+
+for((imod=$istart;imod<=$iend;imod++))
+do
+    ipad=$(echo $imod | awk '{printf("%02d",$1)}')
+    #ipad=$(cat $imod | awk '{printf("%02d",$1)}')
+    echo $ipad
+    sed 's|xxSOILFILExx|'$soildir/splitlist$ipad'|g' $rundir/globals/$global_base > $dir_children/"run"$ipad
+
+    sed -i 's|xxSTATEFILExx|'$rundir/stateout/stateout_$ipad'|g' $dir_children/"run"$ipad
+
+	echo "arg6", $6
+	#	if [[ (-n "$6") && (-n "$7") ]]
+    if [ -n "$6" ] && [ -n "$7" ];
+	then
+	    #echo sed -i 's|#INIT_STATE.*|INIT_STATE    '$6 '  \\# Initial state path/file|g'
+	    sed -i 's|\#INIT_STATE.*|INIT_STATE    '$6/stateout_$ipad"_"$7'  # Initial state path/file|g' $dir_children/"run"$ipad
+    else
+        echo NO REPLACEMENT for INIT_STATE
+	fi
+
+done
+
+echo 'globaldir='$dir_children > $rundir/header_vars.txt #$1 #"/home/stumbaugh/simulator/L13_redux/globals/children"
+echo 'vicdir='$vicdir >> $rundir/header_vars.txt #$1 #"/home/stumbaugh/simulator/L13_redux/globals/children"
+#vicdir=$2 #
+scr=$scriptsdir/"aj_vic.bsh"
+scr_inst=$rundir/"aj_vic.bsh"
+cat $rundir/header_vars.txt $scr > $scr_inst
+scr_qsub=$scr_inst".qsub"
+#exit
+(
+cd $rundir
+/home/stumbaugh/bin/wrapsge_aj "aj_vic.bsh" $njobs
+sed -i 's/##$ -q.*/#$ -q default.q@compute-0-0,default.q@compute-0-1,default.q@compute-0-2,default.q@compute-2-6/' aj_vic.bsh.qsub
+cmd="aj_vic.bsh.qsub"
+echo "qsub" $cmd
+#qsub $cmd
+)

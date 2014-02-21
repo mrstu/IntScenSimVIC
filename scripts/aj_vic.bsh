@@ -1,0 +1,6 @@
+date
+im=$(echo "$SGE_TASK_ID-1" | bc -l)
+ipad=$(echo $im | awk '{printf("%02d",$1)}')
+echo $indir
+eval $vicdir/vicNl -g $globaldir/"run"$ipad #> logs/log$ipad".txt" 2>&1
+date

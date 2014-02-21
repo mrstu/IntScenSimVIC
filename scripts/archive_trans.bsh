@@ -1,0 +1,18 @@
+#!/bin/bash
+#$ -cwd
+#$ -j y
+#$ -S /bin/bash 
+#$ -M mrstu@uw.edu
+#$ -m beas
+##$export PYTHONPATH=/home/stumbaugh
+##$ -q
+##$ -t 1-2
+##$ -tc
+#$ -q default.q@compute-0-0,default.q@compute-0-1,default.q@compute-0-2,default.q@compute-2-*
+basedir=$(pwd -P)
+arcdir=$(echo $basedir | sed 's|raid3|raid2|g')
+mkdir -p $arcdir
+
+#rsync --dry-run --remove-source-files -azv fluxes/ $arcdir/fluxes #&& ln -s $
+
+rsync --remove-source-files -azv fluxes $arcdir/fluxes && ln -s $arcdir/fluxes fluxes

@@ -1,0 +1,95 @@
+#!/bin/bash
+
+### INPUT ARGS ###
+
+# ./run_packfluxpart.bsh rcp45/CanESM2/wus_full.1/ cfg_flux2nc/vic2ncBlocks_MACA_RCP45.cfg part1  {1..10}
+dirsim=$1
+nccfg=$2
+cfgsuf=$3
+args=( $@ ) #($@)
+#echo $@
+#echo $#
+
+if [ "$#" -gt 1 ]
+then
+    # These are 1-based indices (i.e. 1: "splitlist00")
+    splitinds="${args[@]:3}"
+    echo $splitinds
+else
+    echo "Requried args <simdir> <splitinds 1+>"
+fi
+
+#exit
+
+#runpart="wus_full.1"; force_startyear=2006; sim_startyear=2006; sim_endyear=2100; 
+#    inittime="20051231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2/simulator/historical/"$gcm"/wus_full.1/stateout"
+
+scriptdir=$(pwd -P)/scripts
+nccfgdir=$(pwd -P)/$nccfg
+vicoutinfo=/home/stumbaugh/devel/flux2var_2/headervarnames.txt
+metadir="meta"
+export BLKGRIDDIR="fluxgrids/splitlists"
+export SIMSOILDIR="avail.soil.splits/splitlists"
+export FLUXPREFIX="flux_snow"
+export FLUXDIR="fluxes"
+
+function vicmeta () {
+    vicoutinfo=$1
+    local headervarnamesfile=$metadir/headervarnames.txt
+    local varfmtfile=$metadir/varformats.txt
+    awk '{print $2}' $vicoutinfo | sed 's/OUT_//g' > $headervarnamesfile
+    awk '{printf("%s\n", $3)}' $vicoutinfo > $varfmtfile
+}
+
+function gensplits () {
+    local soils=($(ls $SIMSOILDIR)) 
+    selinds=($@)
+    selsoils=()
+    for sel1 in "${selinds[@]}"
+    do
+        isel=$(echo "$sel1-1" | bc) # this is important.  screwed it up.
+        infile=$SIMSOILDIR/"${soils[$isel]}" 
+        outfile=$BLKGRIDDIR/"${soils[$isel]}"
+        # get Lat/Lon(s) from split soil files
+        awk -v prefix=$FLUXPREFIX '{printf("%s_%s_%s\n", prefix, $3, $4)}' $infile > $outfile
+        # save selected (Lat/Lon) splitlists
+        selsoils=("${selsoils[@]}" "${soils[$isel]}")
+        #echo "${selsoils[@]}"
+    done
+    local selsoils
+}
+
+(
+
+cd $dirsim
+
+### METADATA ###
+
+if [ -d $metadir ] && [ -f $metadir/headervarnames.txt ]
+then
+    varnames=$metadir/headervarnames.txt
+    varfmts=$metadir/varformats.txt
+else
+    # writes flux column names and formats
+    # $metadir/{headervarnames.txt,varformats.txt}
+    mkdir -p $metadir
+    vicmeta $vicoutinfo
+fi
+
+### GENERATE SPLIT LATLON FILES ###
+
+if [ ! -d $BLKGRIDDIR ]
+then
+    mkdir -p $BLKGRIDDIR
+fi
+
+gensplits $splitinds
+
+### Call conversion routines ###
+$scriptdir/flux2blk2nc.bsh $cfgsuf $nccfgdir "${selsoils[@]}"
+
+### Call conversion routines ###
+#$scriptdir/flux2blk2nc.bsh $cfgsuf "${selsoils[@]}"
+
+
+) 

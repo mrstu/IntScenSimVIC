@@ -1,0 +1,40 @@
+#!/bin/bash
+#$ -cwd
+#$ -j y
+#$ -S /bin/bash 
+#$ -M mrstu@uw.edu
+#$ -m beas
+#$ -q default.q@compute-0-*,default.q@compute-2-6
+export PYTHONPATH=/home/stumbaugh:/home/stumbaugh/devel
+
+varfile="meta/headervarnames.txt"
+projdir=$(pwd -P) #"/home/raid3/stumbaugh/IS/CONUS/v2/packaging/historical/CanESM2/wus_full.2"
+
+dirqsub=$projdir/sge_ncblkmerge
+rm $dirqsub/cmds.cfg
+
+dirdata=$projdir/nclite
+dirout=$projdir/ncLL
+
+for var in $(cat $varfile)
+do
+
+    #dataname="splitlist30_$var.grd"; spatialname="splitlist30"
+    dataname=$var"_??.nc"
+	nameout=$var".nc"
+	#varname=$var
+
+    ## ncblks2nc2 uses chunking whereas ncblks2nc reads all times for each split into array before writing output nc
+    mkdir -p $dirout $dirqsub
+    echo python -m mattslib.nclib.ncblks2nc2 \
+    -dd $dirdata \
+    -dn $dataname \
+    -o $dirout \
+    -p $nameout  >> $dirqsub/cmds.cfg
+    
+done
+cd $dirqsub
+~/bin/mk_qsub.bsh cmds.qsub cmds.cfg
+
+echo "NOW SUBMIT:"
+echo  "(cd "$dirqsub"; qsub cmds.qsub)"

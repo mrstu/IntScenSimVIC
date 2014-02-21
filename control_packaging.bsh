@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#./run_flux2blk.bsh historical/CanESM2/wus_full.1/
+## add -sync y to block until finished
+#(cd /home/raid3/stumbaugh/IS/CONUS/v2/simulator/historical/CanESM2/wus_full.1/sge_flux2grd; qsub -sync y flux2grd.qsub)
+#./run_blk2nc.bsh historical/CanESM2/wus_full.1/ cfg_flux2nc/vic2ncBlocks_MACA_HIST.cfg
+#(cd /home/raid3/stumbaugh/IS/CONUS/v2/simulator/historical/CanESM2/wus_full.1/sge_pack; qsub -sync y packcmds.qsub)
+
+workdir=$(pwd -P)
+## Setup Args
+#simdir=historical/CCSM4/wus_full.1/ # aborted and spread on rd2/3.
+#simdir=historical/CanESM2/wus_full.1/ # completed
+#simdir=historical/CNRM-CM5/wus_full.1/
+#cfgfile=cfg_flux2nc/vic2ncBlocks_MACA_HIST.cfg
+
+simdir=$1
+cfgfile=$2
+#simdir=historical/CNRM-CM5/wus_full.1/
+#cfgfile=cfg_flux2nc/vic2ncBlocks_MACA_RCP85.cfg
+
+
+## Setup SGE Array Job 
+./run_flux2blk.bsh $simdir
+./run_blk2nc.bsh $simdir $cfgfile #"splitlist??"
+./run_ncblk2nc.bsh $simdir
+
+## Execute SGE Array Job 
+##      Use "-sync y" to run subsequent array jobs in series
+#: <<-CMT
+(
+cd $workdir/$simdir/sge_flux2grd
+qsub -sync y flux2grd.qsub
+cd $workdir/$simdir/sge_pack
+qsub -sync y packcmds.qsub
+cd $workdir/$simdir/sge_ncblkmerge
+qsub -sync y cmds.qsub
+)
+#CMT
+
+exit
+## THE FOLLOWING DOESN'T WORK BUT IS A START FOR CHAINING
+
+cd1="cd $workdir/$simdir/sge_flux2grd"
+cmd1="qsub -sync y flux2grd.qsub"
+
+cd2="cd $workdir/$simdir/sge_pack"
+cmd2="qsub -sync y packcmds.qsub"
+
+cdSim="cd $workdir/$simdir"
+#cmd3="rm -rf fluxgrids"
+cmd4="qsub $workdir/scripts/archive_trans.bsh"
+
+# Fluxes:Grids, Grids:NCs, remove Grids, archive fluxes
+( $cd1 && $cmd1 && echo "flux2grd conversion SUCCESS" ) && \
+( $cd2 && $cmd2 && echo "blk2nc packing SUCCESS" ) && \
+( $cdSim && qcmd -sync y -N "rmfluxgrids" 'rm -rf fluxgrids/' && \
+echo "fluxgrids REMOVED" && $cmd4 && echo "fluxes ARCHIVED" )
+

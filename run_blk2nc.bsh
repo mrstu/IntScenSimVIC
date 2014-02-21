@@ -1,0 +1,20 @@
+#!/bin/bash
+
+dirsim=$1 #historical/CanESM2/wus_full.1
+cfg=$2 #cfg_flux2nc/vic2ncBlocks_MACA_HIST.cfg
+rgxsplit="$3" # if empty -> "splitlist??" ELSE splitlist00 splitlist01 ..
+
+#runpart="wus_full.1"; force_startyear=2006; sim_startyear=2006; sim_endyear=2100; 
+#    inittime="20051231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2/simulator/historical/"$gcm"/wus_full.1/stateout"
+
+scriptdir=$(pwd -P)/scripts
+
+export NCBLKCFG=$(pwd -P)/$2 # this assume that arg is relative path
+
+(
+
+cd $dirsim
+
+$scriptdir/ascvar2ncBlk.bsh "$rgxsplit"
+
+) 

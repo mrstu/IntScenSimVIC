@@ -1,0 +1,49 @@
+#!/bin/bash
+#$ -cwd
+#$ -j y
+#$ -S /bin/bash 
+#$ -M mrstu@uw.edu
+#$ -m beas
+#$ -q default.q@compute-0-*,default.q@compute-2-6
+export PYTHONPATH=/home/stumbaugh:/home/stumbaugh/devel
+
+
+varfile="meta/headervarnames.txt"
+projdir=$(pwd -P) #"/home/raid3/stumbaugh/IS/CONUS/v2/packaging/historical/CanESM2/wus_full.2"
+
+dirqsub=$projdir/sge_pack
+rm $dirqsub/packcmds.cfg
+
+
+for var in $(cat $varfile)
+do
+	dirdata=$projdir/"fluxgrids/splitlists"
+	dirspatial=$dirdata
+
+    ##dataname="splitlist30_$var.grd"; spatialname="splitlist30"
+    dataname="splitlist??_$var.grd"; spatialname="splitlist??"
+    
+    ## not working
+    ##dataname="splitlist[29,30]_$var.grd"; spatialname="splitlist[29,30]"
+    ## this works
+    #dataname="splitlist29_$var.grd splitlist30_$var.grd"; spatialname="splitlist29 splitlist30"
+	    
+	dirout=$projdir/nclite
+	nameout=$var
+
+    configfile=$NCBLKCFG
+	#configfile=$projdir/vic2nc_barebones_excolumns.cfg
+	varname=$var
+
+    mkdir -p $dirout $dirqsub
+
+	echo python -m mattslib.nclib.ncBlocks -dd $dirdata \
+	       -dn $dataname -sd $dirspatial -sn $spatialname \
+           -o $dirout -p $nameout -cfg $configfile \
+           -vn $var >> $dirqsub/packcmds.cfg
+done
+cd $dirqsub
+~/bin/mk_qsub.bsh packcmds.qsub packcmds.cfg
+
+echo "NOW SUBMIT:"
+echo  "(cd "$dirqsub"; qsub packcmds.qsub)"

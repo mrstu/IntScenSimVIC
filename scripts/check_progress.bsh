@@ -1,0 +1,21 @@
+#!/bin/bash
+#$ -cwd
+#$ -j y
+#$ -S /bin/bash 
+#$ -M mrstu@uw.edu
+#$ -m beas
+#$ -q default.q@compute-0-0,default.q@compute-0-1,default.q@compute-0-2,default.q@compute-2-6
+export PYTHONPATH=/home/stumbaugh:/home/stumbaugh/devel
+
+fluxdirs=$(find {historical,rcp45,rcp85}/ -type d -name "fluxes")
+
+date_stamp=$(date +"%F-%H-%M")
+rpt=report_nfluxes_$date_stamp
+rm $rpt
+
+for flx in $fluxdirs
+do
+    echo $flx
+    nrecs=$(ls $flx/ | wc -l)
+    echo $flx $nrecs >> $rpt
+done    
