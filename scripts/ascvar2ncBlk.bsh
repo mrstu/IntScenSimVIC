@@ -1,12 +1,4 @@
 #!/bin/bash
-#$ -cwd
-#$ -j y
-#$ -S /bin/bash 
-#$ -M mrstu@uw.edu
-#$ -m beas
-#$ -q default.q@compute-0-*,default.q@compute-2-6
-export PYTHONPATH=/home/stumbaugh:/home/stumbaugh/devel
-
 
 varfile="meta/headervarnames.txt"
 projdir=$(pwd -P) #"/home/raid3/stumbaugh/IS/CONUS/v2/packaging/historical/CanESM2/wus_full.2"
