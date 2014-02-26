@@ -1,0 +1,10 @@
+historical/
+rcp45/
+rcp85/
+bin/
+*.o28*
+log_*.txt
+**/bak.cfg/
+*.bak
+*bak.*/
+*.depr
