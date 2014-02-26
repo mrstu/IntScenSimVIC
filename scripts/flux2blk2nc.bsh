@@ -12,8 +12,9 @@ cfgsuf=$1
 nccfg=$2
 splitfiles="${@:3}"
 
-ajtc_flx2blk=10
-ajtc_blk2nc=10
+ajtc_flx2blk=5
+ajtc_blk2nc=5
+chunksize=8000
 
 echo $@
 #exit
@@ -29,10 +30,10 @@ numtoread=$(wc -l $dirfluxes/$fluxcleantoread | awk '{print $1;}')
 
 mkdir sge_flux2grd sge_pack nclite
 
-if [ ! -d bin ] && [ ! -f bin/conffluxasc2grd_$cfgsuf ]
+if [ ! -d bin ] || [ ! -f bin/conffluxasc2grd_$cfgsuf ]
 then
 	mkdir bin
-	gcc -lm -o bin/conffluxasc2grd_$cfgsuf /home/stumbaugh/lib/confullfluxasc2grd/confullfluxasc2grd.c
+	gcc -lm -o bin/conffluxasc2grd_$cfgsuf $CONFLUX #/home/stumbaugh/lib/confullfluxasc2grd/confullfluxasc2grd.c
 fi
 
 #mksplitgrdfiles.bsh $dirfluxes
@@ -50,11 +51,17 @@ do
     # Number of location cells
     numwc=$(wc -l "$sfinst")
     numcells=$(echo $numwc | awk '{print $1;}')
-    
+
+    numtimes=$(wc -l $workdir/$dirfluxes/$(head -n 1 $sfinst)  | awk '{print $1;}')
+    if [ $chunksize > $numtimes ]
+    then 
+        chunksize=$numtimes
+    fi   
+            
     outdir="junk"
 #    cat ~/sge_temple/sge_tmp_1j.txt > sge_qsub/$sf
 #    sed -i 's/#$ -q.*/#$ -q default.q@compute-0-0,default.q@compute-0-1,default.q@compute-0-2/' sge_qsub/$sf
-    echo $workdir/bin/conffluxasc2grd_"cfgsuf" $workdir/$dirfluxes/ $workdir/$sfinst $numcells $numtoread $workdir/meta/headervarnames.txt $workdir/meta/varformats.txt 8000 $outdir >> sge_flux2grd/$cfg"_"$cfgsuf".cfg"
+    echo $workdir/bin/conffluxasc2grd_$cfgsuf $workdir/$dirfluxes/ $workdir/$sfinst $numcells $numtoread $workdir/meta/headervarnames.txt $workdir/meta/varformats.txt 8000 $outdir >> sge_flux2grd/$cfg"_"$cfgsuf".cfg"
 #    echo bin/conffluxasc2grd $dirfluxes/ $sfinst $numcells $numtoread $headervarnamesfile $varfmtfile 200 $outdir >> sge_qsub/$sf
     #qsub sge_qsub/$sf
     #confluxasc2grd $dirfluxes $sf $numcells $numtoread $varnamesfile $outdir   
@@ -72,6 +79,9 @@ do
 done
 #exit
 
+
+#echo '#!/bin/bash' > aj_pack.bsh
+
 (
 cd sge_flux2grd
 cfgfile=$cfg"_"$cfgsuf".cfg"
@@ -80,9 +90,11 @@ qsubfile=$cfg"_"$cfgsuf".qsub"
 sed -i 's/##$ -tc/#$ -tc '$ajtc_flx2blk'/g' $qsubfile
 sed -i 's/#$ -q.*/#$ -q default.q@compute-0-0,default.q@compute-0-1,default.q@compute-0-2/' $qsubfile
 
-echo "NOW RUN:"
-echo '(cd '$workdir'/sge_flux2grd; qsub '$qsubfile')'
+echo 'NOW RUN: (cd '$workdir'/sge_flux2grd; qsub -sync y '$qsubfile')'  > log_$cfgsuf".txt"
+qsub -sync y $qsubfile >> log_$cfgsuf".txt"
+#echo '(cd '$workdir'/sge_flux2grd; qsub -sync y '$qsubfile')'
 )
+#echo '#!/bin/bash' > aj_pack.bsh
 
 (
 cd sge_pack
@@ -92,8 +104,10 @@ qsubfile="packcmds_"$cfgsuf".qsub"
 sed -i 's/##$ -tc/#$ -tc '$ajtc_blk2nc'/g' $qsubfile
 sed -i 's/#$ -q.*/#$ -q default.q@compute-0-0,default.q@compute-0-1,default.q@compute-0-2/' $qsubfile
 
-echo "NOW SUBMIT:"
-echo  "(cd sge_pack; qsub packcmds_"$cfgsuf".qsub)"
+echo 'NOW RUN: (cd '$workdir'/sge_pack; qsub -sync y '$qsubfile')' > log_$cfgsuf".txt"
+qsub -sync y packcmds_$cfgsuf".qsub" >> log_$cfgsuf".txt"
+##echo '(cd '$workdir'/sge_pack; qsub -sync y packcmds_'$qsubfile'.qsub)' | tee ../aj_pack.bsh
+##echo '(cd '$workdir'/sge_pack; qsub -sync y packcmds_'$qsubfile'.qsub)' | tee ../aj_pack.bsh
 )
 
 #logfile and run both stuff

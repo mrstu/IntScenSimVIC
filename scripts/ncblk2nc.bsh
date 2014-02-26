@@ -5,7 +5,8 @@
 #$ -M mrstu@uw.edu
 #$ -m beas
 #$ -q default.q@compute-0-*,default.q@compute-2-6
-export PYTHONPATH=/home/stumbaugh:/home/stumbaugh/devel
+
+#export PYTHONPATH=/home/stumbaugh:/home/stumbaugh/devel
 
 varfile="meta/headervarnames.txt"
 projdir=$(pwd -P) #"/home/raid3/stumbaugh/IS/CONUS/v2/packaging/historical/CanESM2/wus_full.2"
@@ -35,6 +36,8 @@ do
 done
 cd $dirqsub
 ~/bin/mk_qsub.bsh cmds.qsub cmds.cfg
+
+sed -i 's/##$ -tc/#$ -tc 4/g' cmds.qsub
 
 echo "NOW SUBMIT:"
 echo  "(cd "$dirqsub"; qsub cmds.qsub)"

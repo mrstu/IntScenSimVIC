@@ -10,9 +10,12 @@ args=( $@ ) #($@)
 #echo $@
 #echo $#
 
+## definitions for VIC variables/formats, flux converter code
+source setup/projenvs.bsh
+
 if [ "$#" -gt 1 ]
 then
-    # These are 1-based indices (i.e. 1: "splitlist00")
+    # These are 1-based indices (i.e. 1: "splitlist00") that correspond to array job numbers
     splitinds="${args[@]:3}"
     echo $splitinds
 else
@@ -26,7 +29,7 @@ fi
 
 scriptdir=$(pwd -P)/scripts
 nccfgdir=$(pwd -P)/$nccfg
-vicoutinfo=/home/stumbaugh/devel/flux2var_2/headervarnames.txt
+vicoutinfo=$VICOUTVARS #now in /setup; originally here: /home/stumbaugh/devel/flux2var_2/headervarnames.txt
 metadir="meta"
 export BLKGRIDDIR="fluxgrids/splitlists"
 export SIMSOILDIR="avail.soil.splits/splitlists"
@@ -65,7 +68,7 @@ cd $dirsim
 
 ### METADATA ###
 
-if [ -d $metadir ] && [ -f $metadir/headervarnames.txt ]
+if [ -d $metadir ] && [ -f $metadir/headervarnames.txt ] && [ ! $(wc -l $metadir/headervarnames.txt | cut -d" " -f1) -eq 0 ] 
 then
     varnames=$metadir/headervarnames.txt
     varfmts=$metadir/varformats.txt
@@ -85,8 +88,27 @@ fi
 
 gensplits $splitinds
 
+#### testing ####
+#: <<-CMT
+parts=( $(ls sge_flux2grd/*.cfg) )
+numparts="${#parts[@]}"
+if [ $numparts -gt 0 ]
+then
+    nnew=$(echo $numparts+1 | bc)
+    cfgsuf=part$nnew
+fi 
+#CMT
+
+for ispl in $splitinds
+do
+    echo $ispl $cfgsuf >> simstat/report_packed
+done
+#### testing ####
+
 ### Call conversion routines ###
-$scriptdir/flux2blk2nc.bsh $cfgsuf $nccfgdir "${selsoils[@]}"
+echo NOHUP: $scriptdir/flux2blk2nc.bsh $cfgsuf $nccfgdir "${selsoils[@]}"
+echo LOG: log_flux2blk2nc_$cfgsuf".txt"
+nohup $scriptdir/flux2blk2nc.bsh $cfgsuf $nccfgdir "${selsoils[@]}" > log_flux2blk2nc_$cfgsuf".txt" 2>&1 &
 
 ### Call conversion routines ###
 #$scriptdir/flux2blk2nc.bsh $cfgsuf "${selsoils[@]}"

@@ -1,6 +1,19 @@
 date
 im=$(echo "$SGE_TASK_ID-1" | bc -l)
 ipad=$(echo $im | awk '{printf("%02d",$1)}')
-echo $indir
+#echo $indir
+
+echo $SGE_TASK_ID $JOB_ID $ipad $SGE_TASK_FIRST $SGE_TASK_LAST $(date +"%Y/%m/%d %T") >> simstat/report_started.$JOB_ID
 eval $vicdir/vicNl -g $globaldir/"run"$ipad #> logs/log$ipad".txt" 2>&1
+#echo "$?" $JOB_ID $SGE_TASK_ID $SGE_TASK_FIRST $SGE_TASK_LAST $ipad >> simstat/report.$JOB_ID
+
+#: <<-CMT
+if [ "$?" -eq 0 ]
+then
+    echo $SGE_TASK_ID $JOB_ID $ipad "$?" $(date +"%Y/%m/%d %T") >> simstat/report_finished.$JOB_ID
+else
+    echo $SGE_TASK_ID $JOB_ID $ipad "$?" $(date +"%Y/%m/%d %T") >> simstat/FAILED.$JOB_ID
+fi
+#CMT
+
 date

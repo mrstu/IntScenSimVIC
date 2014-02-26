@@ -19,11 +19,14 @@ cfgfile=$2
 #cfgfile=cfg_flux2nc/vic2ncBlocks_MACA_RCP85.cfg
 
 
+source setup/projenvs.bsh
+
 ## Setup SGE Array Job 
 ./run_flux2blk.bsh $simdir
 ./run_blk2nc.bsh $simdir $cfgfile #"splitlist??"
 ./run_ncblk2nc.bsh $simdir
 
+#exit
 ## Execute SGE Array Job 
 ##      Use "-sync y" to run subsequent array jobs in series
 #: <<-CMT

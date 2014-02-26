@@ -2,10 +2,11 @@
 
 
 ## directory: .../simulator
-sim_basedir=$(cd ..; pwd -P)
+basedir=/home/raid3/stumbaugh/IS/CONUS/v2.2
+sim_basedir=$basedir/simulator #$(cd ..; pwd -P)
 
 ## directory: .../vicfrc/cat4
-forcings_basedir=$(cd ../../vicfrc/cat4/; pwd -P)
+forcings_basedir=$basedir/vicfrc/cat4
 
 ## This must correspond to how the initial state files were split
 sim_domain_splitlen=1500
@@ -16,3 +17,7 @@ export SIMDOM_SPLITLEN=$sim_domain_splitlen
 
 ## Expected cell number
 export SIMCELLS=90116
+
+export CONFLUX="/home/stumbaugh/lib/confullfluxasc2grd/confullfluxasc2grd.c"
+## Must repeat vars for layers
+export VICOUTVARS="/home/raid3/stumbaugh/IS/CONUS/v2.2/simulator/setup/VIC_OUT_VARS.txt"

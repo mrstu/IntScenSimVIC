@@ -10,7 +10,7 @@
 #VEGPARAM xxVEGPARAMxx
 #SNOW_BAND 5
 #RESULT_DIR xxRESULTDIRxx
-basedir=/home/raid3/stumbaugh/IS/CONUS/v2/simulator
+basedir=/home/raid3/stumbaugh/IS/CONUS/v2.2/simulator
 runpath=$1 #rcp45/CanESM2
 runpart=$2 #part_01
 rundir=$basedir/$runpath/$runpart
@@ -26,7 +26,7 @@ sim_endyear=$5
 soildir=$rundir/avail.soil.splits/splitlists
 
 
-scriptsdir=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/scripts
+scriptsdir=/home/raid3/stumbaugh/IS/CONUS/v2.2/simulator/scripts
 
 #global_template=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/global.template/global.param.4.1.2.g.noleap.flux.macav2
 #vicdir=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/viclib/vic.4.1.2.g.noleap.1/VIC/src
@@ -69,6 +69,8 @@ iend=$(echo "$njobs-1" | bc -l)
 #njobs=$(echo "$iend-$istart+1" | bc -l)
 
 mkdir $rundir/stateout
+mkdir $rundir/simstat # directory to store exit statuses for array jobs
+
 
 for((imod=$istart;imod<=$iend;imod++))
 do

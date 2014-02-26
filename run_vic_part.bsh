@@ -20,38 +20,59 @@
 #global_template=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/global.template/global.param.4.1.2.k.flux.L13v1.1 
 #vicdir=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/viclib/vic.4.1.2.k/VIC/src #vicdir
 #force_dir=/raid3/stumbaugh/L14/forcings #rcp45/CanESM2 #force_dir
-global_template=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/global.template/global.param.4.1.2.g.noleap.flux.macav2
-vicdir=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/viclib/vic.4.1.2.g.noleap.1/VIC/src
+#global_template=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/global.template/global.param.4.1.2.g.noleap.flux.macav2
+#vicdir=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/viclib/vic.4.1.2.g.noleap.1/VIC/src
+
+vicdir=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/viclib/vic.4.1.2.k/VIC/src #vicdir
+global_template=/home/raid3/stumbaugh/IS/CONUS/v2.2/simulator/global.template/global.param.4.1.2.k.macav2
 
 #runpath=historical/L13v1.1 # usually used in forcing location but here not since Ben's
 #runpart="wus_full.1"; force_startyear=1915; sim_startyear=1940; sim_endyear=1949
 
-for gcm in CCSM4 #CanESM2 #CCSM4 CNRM-CM5
-do
-    #runpath=historical/$gcm; runpart="wus_full.1"; force_startyear=1950; sim_startyear=1950; sim_endyear=2005; 
-    #inittime="19491231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2/simulator/historical/L13v1.1/wus_full.1/stateout"
+#for gcm in CSIRO-Mk3-6-0 #CCSM4 #CanESM2 #CCSM4 CNRM-CM5
+#do
+scen=$1
+gcm=$2
+if [[ "$scen" == "historical" ]]
+then
+	if [[ "$gcm" == "L13v1.1" ]]
+	then
+        runpath=historical/L13v1.1 # usually used in forcing location but here not since Ben's
+        runpart="wus_full.1"; force_startyear=1915; sim_startyear=1940; sim_endyear=1949
+        global_template=/home/raid3/stumbaugh/IS/CONUS/v2.2/simulator/global.template/global.param.4.1.2.k.flux.L13v1.1                
+    else        
+	    runpath=historical/$gcm; runpart="wus_full.1"; force_startyear=1950; sim_startyear=1950; sim_endyear=2005; 
+	    inittime="19491231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2/simulator/historical/L13v1.1/wus_full.1/stateout"
+	fi
+elif [[ "$scen" == "rcp45" ]]
+then
     runpath=rcp45/$gcm; runpart="wus_full.1"; force_startyear=2006; sim_startyear=2006; sim_endyear=2100; 
-    inittime="20051231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2/simulator/historical/"$gcm"/wus_full.1/stateout"
-    #runpath=rcp85/$gcm; runpart="wus_full.1"; force_startyear=2006; sim_startyear=2006; sim_endyear=2100; 
-    #inittime="20051231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2/simulator/historical/"$gcm"/wus_full.1/stateout"
-
+    inittime="20051231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2.2/simulator/historical/"$gcm"/wus_full.1/stateout"
+elif [[ "$scen" == "rcp85" ]]
+then
+    runpath=rcp85/$gcm; runpart="wus_full.1"; force_startyear=2006; sim_startyear=2006; sim_endyear=2100; 
+    inittime="20051231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2.2/simulator/historical/"$gcm"/wus_full.1/stateout"
+else
+    echo $1 "scenario not recognized"
+    exit 1
+fi
 
 	echo "runpath:" $runpath
 	echo "runpart:" $runpart
 	echo "force_startyear:" $force_startyear
 	echo "sim_startyear:" $sim_startyear
 	echo "sim_endyear:" $sim_endyear
-	force_dir=/home/raid3/stumbaugh/IS/CONUS/v2/vicfrc/cat4/$runpath #rcp45/CanESM2
+	force_dir=/home/raid3/stumbaugh/IS/CONUS/v2.2/vicfrc/cat4/$runpath #rcp45/CanESM2
 	export VICGLOBAL=$global_template VICDIR=$vicdir FORCEDIR=$force_dir
 
     cmd=$(echo scripts/run_aj_vic.bsh $runpath $runpart $force_startyear $sim_startyear $sim_endyear $initpath $inittime)
 	echo "cmd:" $cmd
 	eval $cmd
-	echo "Job waiting to be manually submitted:"
-#(cd /raid3/stumbaugh/IS/CONUS/v2/simulator/rcp45/CanESM2/part_02; qsub aj_vic.bsh.qsub)
-    # 61 concurrent jobs will run 61 soil files in parallel
-    # 32 concurrent jobs will run a little over half of soil files in parallel, leaving open some processors
-	echo '(cd '$runpath/$runpart'; '"qsub -tc 32 aj_vic.bsh.qsub"')'
-    #(cd $runpath/$runpart; qsub -tc 10 aj_vic.bsh.qsub)
+	#echo "Job waiting to be manually submitted:"
+    ##(cd /raid3/stumbaugh/IS/CONUS/v2/simulator/rcp45/CanESM2/part_02; qsub aj_vic.bsh.qsub)
+    ## 61 concurrent jobs will run 61 soil files in parallel
+    ## 32 concurrent jobs will run a little over half of soil files in parallel, leaving open some processors
+	#echo '(cd '$runpath/$runpart'; '"qsub -tc 32 aj_vic.bsh.qsub"')'
+    (cd $runpath/$runpart; qsub -sync y aj_vic.bsh.qsub)
 
-done
+#done

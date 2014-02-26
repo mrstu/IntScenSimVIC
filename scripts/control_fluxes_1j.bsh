@@ -6,15 +6,12 @@
 #   TODO: simplify this.
 #
 
-export PYTHONPATH=/home/stumbaugh
-## Finding ghcn-d stations in pnw buffer and saving info about stations by CANADA/state.
-
 #cfg=$(echo "historical/CanESM2/wus_full.2" | sed 's|/|_|g')
 cfg="flux2grd"
-vicoutinfo=/home/stumbaugh/devel/flux2var_2/headervarnames.txt
+vicoutinfo=$VICOUTVARS #"home/raid3/stumbaugh/IS/CONUS/v2.2/simulator/setup/VIC_OUT_VARS.txt"
 
 mkdir bin
-gcc -lm -o bin/conffluxasc2grd /home/stumbaugh/lib/confullfluxasc2grd/confullfluxasc2grd.c
+gcc -lm -o bin/conffluxasc2grd $CONFLUX #/home/stumbaugh/lib/confullfluxasc2grd/confullfluxasc2grd.c
 
 workdir=$(pwd -P)
 dirfluxes=fluxes # Must add rows to metadata for soil layers 
@@ -25,12 +22,14 @@ splitsize=3000 #100 #(for testing) #47k/3k ~ 47 processors WARM consists of 16 4
 # (4*1000=4000 columns stored dynamically in 2D array)
 # (21*200=4200 columns stored dynamically in 2D array)
 # ~10000 timesteps chunked
+chunksize=8000
 
 metadir="meta"; mkdir -p $metadir/splitlists
 rm -f $metadir/splitlists/*
 cellflist=$metadir/cellfilenames.txt
 #cp $fluxflist $metadir/splitlists/splitlist00
-sed 's/frc4_/flux_snow_/g' $fluxflist > $cellflist
+sed 's/data_/flux_snow_/g' $fluxflist | sed 's/frc4_/flux_snow_/g' > $cellflist
+
 #sed 's/data_/flux_snow_/g' $fluxflist > $cellflist
 ##awk '{if(NR>1){printf("data_%s\n",$0);};}' $fluxflist > $cellflist
 ~/bin/mksplitlists $cellflist $metadir $splitsize
@@ -77,11 +76,16 @@ do
     # Number of location cells
     numwc=$(wc -l "$sfinst")
     numcells=$(echo $numwc | awk '{print $1;}')
-    
+        
+    numtimes=$(wc -l $workdir/$dirfluxes/$(head -n 1 $sfinst)  | awk '{print $1;}')
+    if [ $chunksize > $numtimes ]
+    then 
+        chunksize=$numtimes
+    fi
     outdir="junk"
 #    cat ~/sge_temple/sge_tmp_1j.txt > sge_qsub/$sf
 #    sed -i 's/#$ -q.*/#$ -q default.q@compute-0-0,default.q@compute-0-1,default.q@compute-0-2/' sge_qsub/$sf
-    echo $workdir/bin/conffluxasc2grd $workdir/$dirfluxes/ $workdir/$sfinst $numcells $numtoread $workdir/$headervarnamesfile $workdir/$varfmtfile 8000 $outdir >> sge_flux2grd/$cfg".cfg"
+    echo $workdir/bin/conffluxasc2grd $workdir/$dirfluxes/ $workdir/$sfinst $numcells $numtoread $workdir/$headervarnamesfile $workdir/$varfmtfile $chunksize $outdir >> sge_flux2grd/$cfg".cfg"
 #    echo bin/conffluxasc2grd $dirfluxes/ $sfinst $numcells $numtoread $headervarnamesfile $varfmtfile 200 $outdir >> sge_qsub/$sf
     #qsub sge_qsub/$sf
     #confluxasc2grd $dirfluxes $sf $numcells $numtoread $varnamesfile $outdir   
