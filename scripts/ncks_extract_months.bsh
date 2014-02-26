@@ -1,0 +1,35 @@
+#!/bin/bash
+#$ -cwd
+#$ -j y
+#$ -S /bin/bash 
+##$ -M mrstu@uw.edu
+##$ -m beas
+#$ -q default.q@compute-0-0,default.q@compute-0-1,default.q@compute-0-2,default.q@compute-2-6
+export PYTHONPATH=/home/stumbaugh:/home/stumbaugh/devel
+export PATH=$PATH:/home/stumbaugh/bin
+
+# arranging year-args ahead of file-args so that parcmds.bsh can be used here.
+startyr=$1
+endyr=$2
+infile=$3
+outdir=$4
+out_name_prefix=$(basename $infile ".nc")
+
+
+echo '#' $infile $outdir $startyr $endyr
+
+## Month starts / ends (gregorian)
+starts=( $(gentimesplits.py -s $startyr"0101" -f $endyr"1231" -tf MS) ) 
+ends=( $(gentimesplits.py --start $startyr"0101" --final $endyr"1231" --time_frequency M --date_format "%Y-%m-%d") ) 
+## Create month index array
+lastindex0=$(echo "${#starts[@]}"-1 | bc)
+index_mon=( $(seq 0 1 $lastindex0) ) #; echo "${a[2]}"
+
+## Extract each month to file
+for im in "${index_mon[@]}"
+do           
+    #CAUTION: time/Time variable name discrepancy destroys perfomance if not also result.
+    ncks -4 -h -O -d Time,"${starts[im]}","${ends[im]}" $infile $outdir/$out_name_prefix"_${starts[im]}"_"${ends[im]}"
+    echo $im "$?" "${starts[im]} ${ends[im]}"
+done
+

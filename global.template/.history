@@ -1,0 +1,1 @@
+for i in head.*; do oname=$(echo $i | sed s/head/global/g); cat $i outvars_22.txt > $oname; done

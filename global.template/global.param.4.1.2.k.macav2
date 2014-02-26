@@ -1,5 +1,5 @@
 #######################################################################
-# VIC Model Parameters - 4.1.x
+# VIC Model Parameters - 4.1.2.k
 #######################################################################
 # $Id: global.param.sample,v 5.7.2.27 2012/02/07 19:03:02 vicadmin Exp $
 #######################################################################
@@ -42,7 +42,7 @@ FROZEN_SOIL	FALSE	# TRUE = calculate frozen soils
 #SNOW_ALBEDO	USACE	# USACE = use traditional VIC algorithm based on US Army Corps of Engineers empirical snow albedo decay curves, using hard-coded dates for transitions from snow accumulation to melting; SUN1999 = use algorithm of Sun et al 1999, in which albedo decay depends on snow cold content (more appropriate for simulations outside the US).
 #SNOW_DENSITY	DENS_BRAS	# DENS_BRAS = use traditional VIC algorithm taken from Bras, 1990; DENS_SNTHRM = use algorithm taken from SNTHRM model.
 #BLOWING		FALSE	# TRUE = compute evaporative fluxes due to blowing snow
-#COMPUTE_TREELINE   FALSE   # Can be either FALSE or the id number of an understory veg class; FALSE = turn treeline computation off; VEG_CLASS_ID = replace any overstory veg types with the this understory veg type in all snow bands for which the average July Temperature <= 10 C (e.g. "COMPUTE_TREELINE 10" replaces any overstory veg cover with class 10)
+#COMPUTE_TREELINE	FALSE	# Can be either FALSE or the id number of an understory veg class; FALSE = turn treeline computation off; VEG_CLASS_ID = replace any overstory veg types with the this understory veg type in all snow bands for which the average July Temperature <= 10 C (e.g. "COMPUTE_TREELINE 10" replaces any overstory veg cover with class 10)
 #DIST_PRCP	FALSE	# TRUE = use distributed precipitation
 #PREC_EXPT	0.6	# exponent for use in distributed precipitation eqn (only used if DIST_PRCP is TRUE)
 #CORRPREC	FALSE	# TRUE = correct precipitation for gauge undercatch
@@ -117,7 +117,7 @@ BINARY_STATE_FILE       FALSE	# TRUE if state file should be binary format; FALS
 #			FORCE_TYPE	PREC
 #######################################################################
 ##FORCING1	/raid/blivneh/forcings/outputs/CONUS/asc.new/data_	# Forcing file path and prefix, ending in "_"
-FORCING1	/raid3/stumbaugh/L14/forcings/data_	# Forcing file path and prefix, ending in "_"
+FORCING1	xxFORCEDIRxx/frc4_	# Forcing file path and prefix, ending in "_"
 FORCE_FORMAT	ASCII	# BINARY or ASCII
 FORCE_ENDIAN	LITTLE	# LITTLE (PC/Linux) or BIG (SUN)
 N_TYPES		4	# Number of variables (columns)
@@ -144,7 +144,7 @@ ARC_SOIL        FALSE   # TRUE = read soil parameters from ARC/INFO ASCII grids
 BASEFLOW	ARNO	# ARNO = columns 5-8 are the standard VIC baseflow parameters; NIJSSEN2001 = columns 5-8 of soil file are baseflow parameters from Nijssen et al (2001)
 JULY_TAVG_SUPPLIED	FALSE	# TRUE = final column of the soil parameter file will contain average July air temperature, for computing treeline; this will be ignored if COMPUTE_TREELINE is FALSE; FALSE = compute the treeline based on the average July air temperature of the forcings over the simulation period
 ORGANIC_FRACT	FALSE	# TRUE = simulate organic soils; soil param file contains 3*Nlayer extra columns, listing for each layer the organic fraction, and the bulk density and soil particle density of the organic matter in the soil layer; FALSE = soil param file does not contain any information about organic soil, and organic fraction should be assumed to be 0
-VEGLIB	        /home/blivneh/src/VIC_4.1.1/LDAS_veg_lib # Veg library path/file
+VEGLIB	        /home/blivneh/src/VIC_4.1.1/LDAS_veg_lib	# Veg library path/file
 VEGPARAM        xxVEGPARAMxx	# Veg parameter path/file
 ROOT_ZONES      3	# Number of root zones (must match format of veg param file)
 VEGPARAM_LAI 	TRUE    # TRUE = veg param file contains LAI information; FALSE = veg param file does NOT contain LAI information
@@ -169,7 +169,7 @@ OUT_STEP        24       # Output interval (hours); if 0, OUT_STEP = TIME_STEP
 SKIPYEAR 	0	# Number of years of output to omit from the output files
 COMPRESS	FALSE	# TRUE = compress input and output files when done
 BINARY_OUTPUT	FALSE	# TRUE = binary output files
-ALMA_OUTPUT	TRUE	# TRUE = ALMA-format output files; FALSE = standard VIC units
+ALMA_OUTPUT	FALSE	# TRUE = ALMA-format output files; FALSE = standard VIC units
 MOISTFRACT 	FALSE	# TRUE = output soil moisture as volumetric fraction; FALSE = standard VIC units
 PRT_HEADER	FALSE   # TRUE = insert a header at the beginning of each output file; FALSE = no header
 PRT_SNOW_BAND   FALSE   # TRUE = write a "snowband" output file, containing band-specific values of snow variables; NOTE: this is ignored if N_OUTFILES is specified below.

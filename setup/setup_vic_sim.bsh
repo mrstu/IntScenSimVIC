@@ -1,0 +1,48 @@
+#!/bin/bash
+
+scen=$1 # historical
+gcm=$2 # CanESM2
+rundirname=$3 #"wus_full.1"
+
+function argcheck () {
+    echo "3 args required: <scenario> <gcm> <simulation domain/version name>"
+    echo
+    echo "For example,"
+    echo "  scenario: historical"
+    echo "  gcm: CanESM2"
+    echo "  simulation domain/version: wus_full.1"
+    STATUS=1
+    exit $STATUS    
+}
+
+echo $#
+if [ ! $# -eq 3 ]
+then
+    argcheck
+fi
+
+## export of environment variables for v2.2
+##      SIMBASEDIR, FORCEBASEDIR, SIMDOM_SPLITLEN
+source projenvs.bsh 
+
+
+genre=$scen/$gcm #CanESM2
+basedir=$SIMBASEDIR/$genre
+echo $basedir
+
+mkdir -p $SIMBASEDIR/$genre/$rundirname
+
+ls $FORCEBASEDIR/$genre > $SIMBASEDIR/$genre/$rundirname/all_forcings.txt
+frclist=$(basename $SIMBASEDIR/$genre/$rundirname/all_forcings.txt)
+echo $frclist
+
+ncells=$(wc -l $SIMBASEDIR/$genre/$rundirname/all_forcings.txt | awk '{print $1}') #SIMCELLS=90116
+
+if [ $ncells -eq $SIMCELLS ]
+then
+    qsub -sync y /home/stumbaugh/devel/VICstaging/soil2nc2png.bsh $SIMBASEDIR/$genre/$rundirname $frclist $SIMDOM_SPLITLEN
+else
+    echo 'Number of forcings ('$ncells') not equal to expected number ('$SIMCELLS')'
+    STATUS=1
+    exit $STATUS        
+fi    

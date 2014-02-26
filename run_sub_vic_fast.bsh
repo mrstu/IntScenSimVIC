@@ -1,0 +1,68 @@
+#!/bin/bash
+
+vicdir=/home/raid3/stumbaugh/IS/CONUS/v2/simulator/viclib/vic.4.1.2.k/VIC/src #vicdir
+
+#runpath=historical/L13v1.1 # usually used in forcing location but here not since Ben's
+#runpart="wus_full.1"; force_startyear=1915; sim_startyear=1940; sim_endyear=1949
+
+#for gcm in CSIRO-Mk3-6-0 #CCSM4 #CanESM2 #CCSM4 CNRM-CM5
+#do
+scen=$1
+gcm=$2
+subdomainID=$3
+numchunks=$4
+
+if [[ "$scen" == "historical" ]]
+then
+    if [[ "$gcm" == "L13v1.1" ]]
+    then
+        runpath=historical/L13v1.1 # usually used in forcing location but here not since Ben's
+        runpart="wus_full.1"; force_startyear=1915; sim_startyear=1940; sim_endyear=1949
+        global_template=/home/raid3/stumbaugh/IS/CONUS/v2.2/simulator/global.template/global.param.4.1.2.k.flux.L13v1.1                
+    else        
+        runpath=historical/$gcm; runpart="wus_full.1"; force_startyear=1950; sim_startyear=1950; sim_endyear=2005; 
+        inittime="19491231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2/simulator/historical/L13v1.1/wus_full.1/stateout"
+    fi
+elif [[ "$scen" == "rcp45" ]]
+then
+    runpath=rcp45/$gcm; runpart="wus_full.1"; force_startyear=2006; sim_startyear=2006; sim_endyear=2100; 
+    inittime="20051231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2.2/simulator/historical/"$gcm"/wus_full.1/stateout"
+elif [[ "$scen" == "rcp85" ]]
+then
+    runpath=rcp85/$gcm; runpart="wus_full.1"; force_startyear=2006; sim_startyear=2006; sim_endyear=2100; 
+    inittime="20051231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2.2/simulator/historical/"$gcm"/wus_full.1/stateout"
+else
+    echo $1 "scenario not recognized"
+    exit 1
+fi
+
+	echo "runpath:" $runpath
+	echo "runpart:" $runpart
+	echo "force_startyear:" $force_startyear
+	echo "sim_startyear:" $sim_startyear
+	echo "sim_endyear:" $sim_endyear
+	force_dir=/home/raid3/stumbaugh/IS/CONUS/v2.2/vicfrc/cat4/$runpath #rcp45/CanESM2
+	export VICGLOBAL=$global_template VICDIR=$vicdir FORCEDIR=$force_dir
+
+    cd $runpath/$runpart
+    basesoilfile=avail.soil.splits/splitlists/splitlist"$subdomainID"
+    gcsoils=avail.soil.splits/splitsplit/splitlist$subdomainID"_"
+    mkdir -p globals/grandchildren/run"$subdomainID"    
+    mkdir -p avail.soil.splits/splitsplit 
+
+    python -m listutil.toggle_rows -g $numchunks -t $basesoilfile -o $gcsoils
+    
+    rm revic_$subdomainID"_"$numchunks".cfg"
+    lastind=$(echo $numchunks-1 | bc)
+    for i in $(seq 0 1 $lastind)
+    do
+        echo $i
+        newglobnum=$(echo $i | awk '{printf("%02d",$1)}')
+        newglob=globals/grandchildren/run$subdomainID/run$newglobnum
+        sed 's|/splitlists/splitlist'$subdomainID'|/splitsplit/splitlist'$subdomainID"_"$newglobnum'|g' globals/children/run"$subdomainID" > $newglob
+        echo $vicdir/vicNl -g $newglob >> revic_$subdomainID"_"$numchunks".cfg"
+    done
+    
+    mk_qsub.bsh revic_$subdomainID"_"$numchunks".qsub" revic_$subdomainID"_"$numchunks".cfg"
+
+#done

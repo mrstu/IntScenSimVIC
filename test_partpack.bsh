@@ -1,0 +1,55 @@
+#!/bin/bash
+
+rundir=$1
+jobid=$2
+cfg_flux2nc=$3
+
+#./test_partpack.bsh historical/CSIRO-Mk3-6-0/wus_full.1/ 2849396 cfg_flux2nc/vic2ncBlocks_MACA_HIST.cfg
+echo $rundir $jobid $cfg_flux2nc
+echo "If something goes wrong before run, need to remove sge_flux2grd,sge_pack,simstat/report_packed"
+
+function getfinished()
+{
+    simfin=$1/simstat/report_finished.$2
+    #echo $simfin
+    inds_simfin=$(cut -f1 -d" " $simfin | sort -h | xargs)
+    #echo $inds_simfin
+}
+
+function getjobrange()
+{
+    ajstart=$(head -n 1 cut -f4 -d" " simstat/report_started.$1)
+    ajend=$(head -n 1 cut -f5 -d" " simstat/report_started.$1)
+}
+
+function getpacked()
+{
+    packfin=$1/simstat/report_packed
+    if [ -f $packfin ] && [ ! $(wc -l $packfin | cut -d" " -f1) -eq 0 ] 
+    then    
+        inds_packfin=$(cut -f1 -d" " $packfin | sort -h  | xargs)
+    else
+        inds_packfin=-1
+    fi
+}
+
+getfinished $rundir $jobid
+getpacked $rundir $jobid
+echo $rundir $jobid
+#echo $inds_simfin
+ind2pack=$(oneNotTwo.py -one $inds_simfin -two $inds_packfin)
+echo $ind2pack
+# not sure how to increment part1 derivaties
+./run_packfluxpart.bsh $rundir $cfg_flux2nc part1 $ind2pack
+
+
+#(cd rcp45/CanESM2/wus_full.1/sge_flux2grd; qsub -sync y flux2grd_part1.qsub; cd ../sge_pack; qsub packcmds_part1.qsub) > log_pack_rcp45_CanESM2_part1-2-32.txt
+#(cd rcp45/CanESM2/wus_full.1/sge_pack; qsub packcmds_part1.qsub) > log_pack_rcp45_CanESM2_part1-2-32.b.txt
+
+exit
+#./run_packfluxpart.bsh rcp45/CanESM2/wus_full.1/ cfg_flux2nc/vic2ncBlocks_MACA_RCP45.cfg part2 {49..61}
+(
+cd /home/raid3/stumbaugh/IS/CONUS/v2/simulator/rcp45/CanESM2/wus_full.1/sge_flux2grd; qsub -sync y flux2grd_part3.qsub;
+cd ../sge_pack; qsub -sync y packcmds_part3.qsub
+)
+#nohup ./test_partpack.bsh > log_pack_rcp45_CanESM2_part2-49-61.txt 2>&1 &

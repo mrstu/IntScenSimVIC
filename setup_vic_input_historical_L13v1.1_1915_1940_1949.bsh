@@ -1,0 +1,17 @@
+#!/bin/bash
+
+## 
+
+genre=historical/L13v1.1
+basedir=$(pwd -P)/$genre
+part="wus_full.1"
+
+LLlist2borrow=rcp85/CSIRO-Mk3-6-0/wus_full.1/all_forcings.txt
+mkdir -p $basedir/$part
+
+sed 's/frc4/data/g' $LLlist2borrow > $basedir/$part/all_forcings.txt
+#ls $(pwd -P)/../vicfrc/cat4/$genre > $basedir/$part/all_forcings.txt
+#frclist=$(basename $basedir/$part/all_forcings.txt)
+frclist=$(basename $basedir/$part/all_forcings.txt)
+echo $frclist
+qsub /home/stumbaugh/devel/VICstaging/soil2nc2png.bsh /raid3/stumbaugh/IS/CONUS/v2.2/simulator/$genre/$part $frclist 1500

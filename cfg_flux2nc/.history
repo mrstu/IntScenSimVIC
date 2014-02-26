@@ -1,0 +1,1 @@
+for i in $(ls head_*); do oname=$(echo $i | sed s/head_//g); (cat $i cfgvars22.cfg > $oname); done 

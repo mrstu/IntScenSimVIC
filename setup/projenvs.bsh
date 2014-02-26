@@ -1,0 +1,18 @@
+#!/bin/bash
+
+
+## directory: .../simulator
+sim_basedir=$(cd ..; pwd -P)
+
+## directory: .../vicfrc/cat4
+forcings_basedir=$(cd ../../vicfrc/cat4/; pwd -P)
+
+## This must correspond to how the initial state files were split
+sim_domain_splitlen=1500
+
+export SIMBASEDIR=$sim_basedir 
+export FORCEBASEDIR=$forcings_basedir
+export SIMDOM_SPLITLEN=$sim_domain_splitlen
+
+## Expected cell number
+export SIMCELLS=90116
