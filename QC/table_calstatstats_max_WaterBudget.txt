@@ -1,0 +1,8 @@
+SWE max mean min max
+BASEFLOW max mean min max
+RUNOFF max mean min max
+PREC max mean min max
+EVAP max mean min max
+SOIL_MOIST1 max mean min max
+SOIL_MOIST2 max mean min max
+SOIL_MOIST3 max mean min max

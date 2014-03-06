@@ -1,0 +1,67 @@
+#!/bin/bash
+#$ -cwd
+#$ -j y
+#$ -S /bin/bash 
+##$ -M mrstu@uw.edu
+##$ -m beas
+##$export PYTHONPATH=/home/stumbaugh
+#$ -q default.q@compute-0-0,default.q@compute-0-1,default.q@compute-0-2,default.q@compute-2-6
+
+#qsub ./clean_selsplits_fluxesgrd.bsh rcp45/IPSL-CM5A-MR/wus_full.1 {26..34} {35..49}
+#qsub ./clean_selsplits_fluxesgrd.bsh rcp85/IPSL-CM5A-MR/wus_full.1 {0..11} {12..31}
+
+#
+# Remove select fluxgrids (not assoc. fluxes.)
+#
+### INPUT ARGS ### <simdir> <splitlistIDs>
+
+dirsim=$1
+args=( $@ ) # id of splitlists
+
+source ~/.bashrc
+
+## definitions for VIC variables/formats, flux converter code
+#source setup/projenvs.bsh
+if [ "$#" -gt 1 ]
+then   
+    cd $dirsim    
+    for id in "${args[@]:1}"
+    do
+        splitID=$(printf "%02d" $(echo $id-1 | bc)); 
+        echo $splitID
+        #CONSIDER: remove splitlist associated fluxes
+        splitfluxes=fluxgrids/splitlists/splitlist$splitID
+        if [ -f $splitfluxes ]
+        then
+        numtimes=$(wc -l fluxes/$(head -n 1 $splitfluxes)  | awk '{print $1;}')                
+        numfluxes=$(wc -l $splitfluxes | awk '{print $1;}')
+
+        log_grd2nc=($(ls sge_pack/packcmds_part$id.qsub.o*.*))
+        ncfg_grd2nc=$(wc -l sge_pack/packcmds_part$id.cfg | awk '{print $1;}')
+        statsum=$(qexit "${log_grd2nc[@]}" | awk '{s+=$1} END {print s}')
+        # do the expected number of log files exist (one per variable per split)
+        # are all exit statuses zero
+        if [ "$ncfg_grd2nc" -eq "${#log_grd2nc[@]}" ] && [ "$statsum" -eq 0 ]
+        then        
+        for spf in $(ls $splitfluxes"_"*.grd)
+        do
+            numrows=$(wc -l $spf | awk '{print $1;}')
+            numcols=$(head -n 1 $spf | awk '{print NF;}')
+            echo numtimes: $numtimes", fluxes:" $numfluxes
+            echo  numrows: $numrows ", ncols:" $numcols
+            if [ "$numtimes" -eq "$numrows" ] && [ "$numfluxes" -eq "$numcols" ]
+            then
+                echo "Removing:" $spf
+                rm $spf
+	        fi                    
+        done
+        fi                   
+        fi
+        #TODO: remove associated fluxgrids
+    done
+else
+    echo "Requried args <simdir> <splitIDs 00,01,..,NN>"
+fi
+
+
+#a=({0..25}); for i in "${a[@]}"; do echo $i; bb=$(printf "%02d" $i); rm fluxgrids/splitlists/splitlist$bb"_"*.grd; done

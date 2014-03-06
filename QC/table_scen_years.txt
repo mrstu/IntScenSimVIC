@@ -1,0 +1,7 @@
+## <scenario label> <start year> <end year>
+
+historical 1950 2005
+
+rcp45 2006 2100
+
+rcp85 2006 2100

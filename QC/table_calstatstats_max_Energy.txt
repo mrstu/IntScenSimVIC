@@ -1,0 +1,14 @@
+SOIL_TEMP1 max mean max min
+SOIL_TEMP2 max mean max min
+SOIL_TEMP3 max mean max min
+SENSIBLE max mean max min
+LATENT max mean max min
+LATENT_SUB max mean max min
+GRND_FLUX max mean max min
+R_NET max mean max min
+SURF_TEMP max mean max min
+SHORTWAVE max mean max min
+NET_SHORT max mean max min
+IN_LONG max mean max min
+NET_LONG max mean max min
+QAIR max mean max min

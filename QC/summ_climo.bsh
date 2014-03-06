@@ -1,0 +1,39 @@
+#!/bin/bash
+#$ -cwd
+#$ -j y
+#$ -S /bin/bash 
+#$ -M mrstu@uw.edu
+#$ -m beas
+#$ -q default.q@compute-0-*,default.q@compute-2-6
+export PYTHONPATH=/home/stumbaugh:/home/stumbaugh/devel
+export PATH=$PATH:/home/stumbaugh/bin
+
+scengcm=$1
+stattable=$2
+#catalog=$3
+projdir=$(pwd -P)
+
+caldir="ncLL.climo"
+summdir=$caldir".ann"
+
+vstable=$projdir/$stattable #QC/table_cal_var_stat_stats.txt
+#tc=4
+
+cd $scengcm
+mkdir $summdir
+
+while read line
+do
+    var=$(echo $line | cut -d" " -f1 )
+    comb=$(ls $caldir/$var | awk -v FS=[_.] '{print $2"_"$3}' | sort | uniq)
+    echo $comb
+    for ic in $comb
+    do
+        inmons=$(ls $caldir/$var/??_$ic".nc")
+        for stat in avg max min
+        do
+            ncra -O -y $stat $inmons $summdir/$var"_"$ic"_"$stat".nc"
+        done
+    done
+done < $vstable
+

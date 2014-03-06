@@ -38,6 +38,7 @@ cd $dirqsub
 ~/bin/mk_qsub.bsh cmds.qsub cmds.cfg
 
 sed -i 's/##$ -tc/#$ -tc 4/g' cmds.qsub
+sed -i 's/#$ -q.*/#$ -q default.q@compute-0-0,default.q@compute-0-1,default.q@compute-0-2/' cmds.qsub
 
 echo "NOW SUBMIT:"
 echo  "(cd "$dirqsub"; qsub cmds.qsub)"

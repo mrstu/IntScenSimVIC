@@ -1,0 +1,1 @@
+a=({0..25}); for i in "${a[@]}"; do echo $i; bb=$(printf "%02d" $i); rm fluxgrids/splitlists/splitlist$bb"_"*.grd; done

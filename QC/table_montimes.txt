@@ -1,0 +1,9 @@
+## <variable> <stat-1 to concatenate> <stat-2 ..> <stat-N ..>
+
+pr sum
+
+tasmax max mean min std1
+
+tasmin max mean min std1
+
+was max mean min std1

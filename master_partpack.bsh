@@ -1,0 +1,14 @@
+#!/bin/bash
+
+## this is supposed to be smart about which parts have been converted and which have not.
+
+# should be for remainder except aj1 (splitlist00).
+#nohup ./test_partpack.bsh rcp45/CSIRO-Mk3-6-0/wus_full.1/ 2850225 cfg_flux2nc/vic2ncBlocks_MACA_RCP45.cfg > log_pack_CSIRO_rcp45_part2.txt 2>&1 &
+gcm=CNRM-CM5; scen=historical 
+cfg=vic2ncBlocks_MACA_HIST.cfg
+jid=2851706; partN=1
+#nohup ./test_partpack.bsh $scen/$gcm/wus_full.1/ $jid cfg_flux2nc/$cfg > log_pack_$gcm"_"$scen"_part"$partN".txt" 2>&1 &
+### Had to merge report_finished.2851938 into 2851706
+### ignore FAILED.2851938, these were completed by 2851706
+partN=2
+nohup ./test_partpack.bsh $scen/$gcm/wus_full.1/ $jid cfg_flux2nc/$cfg > log_pack_$gcm"_"$scen"_part"$partN".txt" 2>&1 &

@@ -108,7 +108,8 @@ done
 ### Call conversion routines ###
 echo NOHUP: $scriptdir/flux2blk2nc.bsh $cfgsuf $nccfgdir "${selsoils[@]}"
 echo LOG: log_flux2blk2nc_$cfgsuf".txt"
-nohup $scriptdir/flux2blk2nc.bsh $cfgsuf $nccfgdir "${selsoils[@]}" > log_flux2blk2nc_$cfgsuf".txt" 2>&1 &
+#nohup $scriptdir/flux2blk2nc.bsh $cfgsuf $nccfgdir "${selsoils[@]}" > log_flux2blk2nc_$cfgsuf".txt" 2>&1 &
+$scriptdir/flux2blk2nc.bsh $cfgsuf $nccfgdir "${selsoils[@]}" > log_flux2blk2nc_$cfgsuf".txt" 2>&1 &
 
 ### Call conversion routines ###
 #$scriptdir/flux2blk2nc.bsh $cfgsuf "${selsoils[@]}"

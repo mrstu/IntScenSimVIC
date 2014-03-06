@@ -1,0 +1,60 @@
+#!/bin/bash
+
+##
+## Compute monthly stats and then aggregate by calendar month using secondary statistics
+##
+## Excecute from /simulator
+##
+## nohup ./QC/master_summ.bsh historical/IPSL-CM5A-MR/wus_full.1/ > log_QCmaxIPSLhist.txt 2>&1 &
+
+##
+## Setup some var:stat:stat(s) tables
+##
+#cat varnames_Energy.txt | awk '{printf("%s mean mean max min\n",$1)}' > table_calstatstats_mean_Energy.txt
+#cat varnames_Energy.txt | awk '{printf("%s max mean max min\n",$1)}' > table_calstatstats_max_Energy.txt
+#cat headervarnames.txt | awk '{printf("%s min mean max min\n",$1)}' > table_calstatstats_min_AllVars.txt
+#cat headervarnames.txt | awk '{printf("%s std1 mean max min\n",$1)}' > table_calstatstats_std1_AllVars.txt
+
+simpath=$1 #historical/IPSL-CM5A-MR/wus_full.1/
+
+qcdir=QC
+ncdir=ncLL
+homebin=/home/$USER/bin
+
+cd $qcdir
+varncfiles=$(awk '{printf("%s.nc\n",$1)}' headervarnames.txt | xargs)
+periodname=$(echo $simpath | awk -F/ '{print $1}')
+startyr=$(grep "$periodname" table_scen_years.txt | awk '{print $2}')
+endyr=$(grep "$periodname" table_scen_years.txt | awk '{print $3}')
+caltables=$(ls table_calstatstats_*)
+cd ..
+
+(
+cd $simpath/$ncdir
+echo "From $(pwd -P)"
+# run from directory of ncLL for select variables
+# not parallel (1 processor each month for period in series)
+rm ".d2m.cfg"
+for ivarncfile in $varncfiles
+do
+    varname=$(basename $ivarncfile ".nc")
+	cmd="$homebin/ncdays2monthsum.bsh $startyr $endyr $ivarncfile"
+    #cmd="qsub -N log_$varname.txt -sync y $homebin/ncdays2monthsum.bsh $startyr $endyr $ivarncfile"	
+	echo $cmd >> ".d2m.cfg"
+done
+#mk_qsub.bsh ".d2m.qsub" ".d2m.cfg"
+#qsub -sync y .d2m.qsub
+)
+
+#exit
+mkdir -p $simpath/sge_out_QC
+for tbl in $caltables
+do
+    echo $tbl
+	cmd="./$qcdir/setup_summ_cal.bsh $simpath $qcdir/$tbl" # 4 concurrent job (default)
+	echo $cmd
+	$cmd
+	cmd="qsub -o $simpath/sge_out_QC ./$qcdir/summ_climo.bsh $simpath $qcdir/$tbl" # not parallel (1 processor for calmon/stat/stat(s) in series)
+    echo $cmd
+    $cmd
+done

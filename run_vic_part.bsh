@@ -72,7 +72,7 @@ fi
     ##(cd /raid3/stumbaugh/IS/CONUS/v2/simulator/rcp45/CanESM2/part_02; qsub aj_vic.bsh.qsub)
     ## 61 concurrent jobs will run 61 soil files in parallel
     ## 32 concurrent jobs will run a little over half of soil files in parallel, leaving open some processors
-	#echo '(cd '$runpath/$runpart'; '"qsub -tc 32 aj_vic.bsh.qsub"')'
-    (cd $runpath/$runpart; qsub -sync y aj_vic.bsh.qsub)
+	echo '(cd '$runpath/$runpart'; '"qsub -tc 32 aj_vic.bsh.qsub"')'
+    #(cd $runpath/$runpart; qsub -sync y aj_vic.bsh.qsub)
 
 #done

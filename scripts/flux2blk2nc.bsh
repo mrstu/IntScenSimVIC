@@ -61,7 +61,7 @@ do
     outdir="junk"
 #    cat ~/sge_temple/sge_tmp_1j.txt > sge_qsub/$sf
 #    sed -i 's/#$ -q.*/#$ -q default.q@compute-0-0,default.q@compute-0-1,default.q@compute-0-2/' sge_qsub/$sf
-    echo $workdir/bin/conffluxasc2grd_$cfgsuf $workdir/$dirfluxes/ $workdir/$sfinst $numcells $numtoread $workdir/meta/headervarnames.txt $workdir/meta/varformats.txt 8000 $outdir >> sge_flux2grd/$cfg"_"$cfgsuf".cfg"
+    echo $workdir/bin/conffluxasc2grd_$cfgsuf $workdir/$dirfluxes/ $workdir/$sfinst $numcells $numtimes $workdir/meta/headervarnames.txt $workdir/meta/varformats.txt $chunksize $outdir >> sge_flux2grd/$cfg"_"$cfgsuf".cfg"
 #    echo bin/conffluxasc2grd $dirfluxes/ $sfinst $numcells $numtoread $headervarnamesfile $varfmtfile 200 $outdir >> sge_qsub/$sf
     #qsub sge_qsub/$sf
     #confluxasc2grd $dirfluxes $sf $numcells $numtoread $varnamesfile $outdir   
@@ -105,9 +105,15 @@ sed -i 's/##$ -tc/#$ -tc '$ajtc_blk2nc'/g' $qsubfile
 sed -i 's/#$ -q.*/#$ -q default.q@compute-0-0,default.q@compute-0-1,default.q@compute-0-2/' $qsubfile
 
 echo 'NOW RUN: (cd '$workdir'/sge_pack; qsub -sync y '$qsubfile')' > log_$cfgsuf".txt"
-qsub -sync y packcmds_$cfgsuf".qsub" >> log_$cfgsuf".txt"
+qsub -sync y packcmds_$cfgsuf".qsub" #>> log_$cfgsuf".txt"
 ##echo '(cd '$workdir'/sge_pack; qsub -sync y packcmds_'$qsubfile'.qsub)' | tee ../aj_pack.bsh
 ##echo '(cd '$workdir'/sge_pack; qsub -sync y packcmds_'$qsubfile'.qsub)' | tee ../aj_pack.bsh
+#grep -e "EXIT_STATUS" packcmds_$cfgsuf".qsub.o*.*" 
+#for i in packcmds_$cfgsuf".qsub.o*.*"
+#do 
+    #status=$(grep -e "EXIT" $i | awk -v FS=[=\ ] '{print $2, $6}')
+    #if $status
+#done
 )
 
 #logfile and run both stuff

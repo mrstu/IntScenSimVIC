@@ -1,0 +1,42 @@
+#!/bin/bash
+#$ -cwd
+#$ -j y
+#$ -S /bin/bash 
+#$ -M mrstu@uw.edu
+#$ -m beas
+#$ -q default.q@compute-0-*,default.q@compute-2-6
+export PYTHONPATH=/home/stumbaugh:/home/stumbaugh/devel
+export PATH=$PATH:/home/stumbaugh/bin
+
+scengcm=$1
+stattable=$2
+
+#catalog=$3
+projdir=$(pwd -P)
+
+statdir="ncLL"
+caldir="ncLL.climo"
+
+vstable=$projdir/$stattable #QC/table_cal_var_stat_stats.txt
+tc=4
+
+cd $scengcm
+mkdir $caldir
+#echo $scengcm | sed 's|/|_|g'
+#outprefix=calstat_$scen"_"$gcm
+outprefix=calstat
+rm $outprefix.cfg
+#echo $scen $gcm $statdir $caldir
+while read line
+do
+    var=$(echo $line | cut -d" " -f1 )
+    python $projdir/QC/statcoord.py -t $vstable -c 'ncra -O -y' -var $var -d $statdir/$var -o $caldir/$var >> $outprefix.cfg
+done < $vstable
+
+mk_qsub.bsh $outprefix.qsub $outprefix.cfg
+mkdir sge_output
+sed -i 's|##$ -tc|#$ -tc '$tc'|g' $outprefix.qsub
+sed -i 's|##$ -q.*|#$ -o sge_output|g' $outprefix.qsub
+#sed -i 's|#$ -q.*|#$ '"$DEFQ"'|g' $outprefix.qsub
+
+qsub -sync y  $outprefix.qsub

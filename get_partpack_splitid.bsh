@@ -1,0 +1,17 @@
+#!/bin/bash
+
+### INPUT ARGS ###
+
+# ./run_packfluxpart.bsh rcp45/CanESM2/wus_full.1/ cfg_flux2nc/vic2ncBlocks_MACA_RCP45.cfg part1  {1..10}
+dirsim=$1
+(
+cd $dirsim
+partmems=$(grep "part1" simstat/report_packed | awk '{print $1}')
+for pm in $partmems
+do
+    splitID=$(awk -v ajid=$pm '{if($1==ajid){print $3}}' simstat/report_finished.*)
+    #ls -I "*LATENT_SUB*" fluxgrids/splitlists/splitlist$splitID"_"*.grd
+    find fluxgrids/splitlists/ -name "splitlist"$splitID"_*.grd" # | grep -v "LATENT_SUB"
+done
+
+) 
