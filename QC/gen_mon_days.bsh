@@ -1,0 +1,46 @@
+#!/bin/bash
+
+##
+## Compute monthly stats and then aggregate by calendar month using secondary statistics
+##
+## Excecute from /simulator
+##
+## nohup ./QC/master_summ.bsh historical/IPSL-CM5A-MR/wus_full.1/ > log_QCmaxIPSLhist.txt 2>&1 &
+
+##
+## Setup some var:stat:stat(s) tables
+##
+#cat varnames_Energy.txt | awk '{printf("%s mean mean max min\n",$1)}' > table_calstatstats_mean_Energy.txt
+#cat varnames_Energy.txt | awk '{printf("%s max mean max min\n",$1)}' > table_calstatstats_max_Energy.txt
+#cat headervarnames.txt | awk '{printf("%s min mean max min\n",$1)}' > table_calstatstats_min_AllVars.txt
+#cat headervarnames.txt | awk '{printf("%s std1 mean max min\n",$1)}' > table_calstatstats_std1_AllVars.txt
+
+scen=$1 #historical/IPSL-CM5A-MR/wus_full.1/
+
+qcdir=QC
+ncdir=ncLL
+homebin=/home/$USER/bin
+
+varncfiles=$(awk '{printf("%s.nc\n",$1)}' headervarnames.txt | xargs)
+periodname=$(echo $scen | awk -F/ '{print $1}')
+startyr=$(grep "$periodname" table_scen_years.txt | awk '{print $2}')
+endyr=$(grep "$periodname" table_scen_years.txt | awk '{print $3}')
+
+mons=( jan feb mar apr may jun jul aug sep oct nov dec )
+
+totaldays=$(python -m mattslib.timelib.gentimeslice -s 10,1,$startyr -f 9,30,$endyr -mode daily -v | cut -f1 -d" " | awk '{sum+=$1}END{print sum}')
+
+mcount=1
+monsum=0
+wgtsum=0
+for mon in "${mons[@]}"
+do
+    mondays=$(python -m mattslib.timelib.gentimeslice -s 10,1,$startyr -f 9,30,$endyr -mode daily -v -monthgroup $mon | cut -f1 -d" " | awk '{sum+=$1}END{print sum}')
+    mpad=$(printf "%02d" $mcount)
+    wgt=$(echo | awk -v mdays=$mondays -v tdays=$totaldays -v sumchk=$wgtsum '{wgt=mdays/tdays; sum=sumchk+wgt; print wgt, sum}')
+    wgtsum=$(echo $wgt | awk '{print $2}')
+    echo $mon $mpad $mondays $totaldays $wgt
+    let mcount=$mcount+1   
+    let monsum=$monsum+$mondays
+done
+#echo $monsum $totaldays

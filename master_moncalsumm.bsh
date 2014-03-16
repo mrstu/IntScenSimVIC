@@ -2,20 +2,30 @@
 
 simversion="wus_full.1"
 
+date_stamp=$(date +"%F-%H-%M")
+
 ## limited VIC outvar availability
 #historical/CSIRO-Mk3-6-0 (TO RERUN)
 #rcp85/CSIRO-Mk3-6-0 (TO RERUN)
 
 ## partial coverage
-#historical/IPSL-CM5A-MR (PATCH NEEDED)
+#historical/IPSL-CM5A-MR (PATCH NEEDED because I only produced partials statistics)
 
 ## full sets
-#rcp{45,85}/IPSL-CM5A-MR (STARTED)
-#rcp45/CSIRO-Mk3-6-0 (STARTED)
+#rcp{45,85}/IPSL-CM5A-MR (FINISHED)
 
-#for simd in rcp{45,85}/IPSL-CM5A-MR rcp45/CSIRO-Mk3-6-0
-for simd in rcp{45,85}/IPSL-CM5A-MR
+#for simd in rcp{45,85}/IPSL-CM5A-MR rcp45/CSIRO-Mk3-6-0#
+#for simd in rcp{45,85}/IPSL-CM5A-MR#
+#historical/LID-V1110 {historical,rcp45,rcp85}/CanESM2 rcp45/CSIRO-Mk3-6-0 
+for simd in historical/LID-V1110 {historical,rcp45,rcp85}/CanESM2 rcp45/CSIRO-Mk3-6-0 
 do
     logsuf=$(echo $simd | sed 's|/|_|g')
-    nohup ./QC/master_summ.bsh $simd/wus_full.1/ > log_QC_$logsuf.txt 2>&1 &
+    #nohup ./QC/master_summ.bsh $simd/wus_full.1/ > log_QC_$logsuf.txt 2>&1 &
+done
+
+# Water budget totals
+for simd in for simd in {historical,rcp45,rcp85}/IPSL-CM5A-MR
+do
+    logsuf=$(echo $simd | sed 's|/|_|g')
+    nohup ./QC/master_summ.bsh $simd/wus_full.1/ > log_QC_$logsuf.$date_stamp.txt 2>&1 &
 done

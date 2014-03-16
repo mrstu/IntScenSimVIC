@@ -2,6 +2,7 @@ historical/
 rcp45/
 rcp85/
 bin/
+logs/
 *.o28*
 log_*.txt
 **/bak.cfg/

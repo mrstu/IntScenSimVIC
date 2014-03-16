@@ -9,7 +9,7 @@ sim_basedir=$basedir/simulator #$(cd ..; pwd -P)
 forcings_basedir=$basedir/vicfrc/cat4
 
 ## This must correspond to how the initial state files were split
-sim_domain_splitlen=1500
+sim_domain_splitlen=1000
 
 export SIMBASEDIR=$sim_basedir 
 export FORCEBASEDIR=$forcings_basedir

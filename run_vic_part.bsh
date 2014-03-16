@@ -39,10 +39,11 @@ then
 	then
         runpath=historical/L13v1.1 # usually used in forcing location but here not since Ben's
         runpart="wus_full.1"; force_startyear=1915; sim_startyear=1940; sim_endyear=1949
-        global_template=/home/raid3/stumbaugh/IS/CONUS/v2.2/simulator/global.template/global.param.4.1.2.k.flux.L13v1.1                
+        global_template=/home/raid3/stumbaugh/IS/CONUS/v2.2/simulator/global.template/global.param.4.1.2.k.flux.L13v1.1
     else        
 	    runpath=historical/$gcm; runpart="wus_full.1"; force_startyear=1950; sim_startyear=1950; sim_endyear=2005; 
-	    inittime="19491231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2/simulator/historical/L13v1.1/wus_full.1/stateout"
+	    #inittime="19491231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2/simulator/historical/L13v1.1/wus_full.1/stateout"
+	    inittime="19491231"; initpath="/home/raid3/stumbaugh/IS/CONUS/v2.2/simulator/historical/L13v1.1_noLAI/wus_full.1/stateout"
 	fi
 elif [[ "$scen" == "rcp45" ]]
 then

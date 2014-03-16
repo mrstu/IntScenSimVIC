@@ -104,7 +104,7 @@ scr_qsub=$scr_inst".qsub"
 (
 cd $rundir
 /home/stumbaugh/bin/wrapsge_aj "aj_vic.bsh" $njobs
-sed -i 's/##$ -q.*/#$ -q default.q@compute-0-0,default.q@compute-0-1,default.q@compute-0-2,default.q@compute-2-6/' aj_vic.bsh.qsub
+sed -i 's/##$ -q.*/#$ -q default.q@compute-0-0,default.q@compute-0-1,default.q@compute-0-2,default.q@compute-2-6,ben.q@compute-0-17,ben.q@compute-0-18,ben.q@compute-0-19/' aj_vic.bsh.qsub
 cmd="aj_vic.bsh.qsub"
 echo "qsub" $cmd
 #qsub $cmd
