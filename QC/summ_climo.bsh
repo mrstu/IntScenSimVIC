@@ -30,7 +30,7 @@ do
     for ic in $comb
     do
         inmons=$(ls $caldir/$var/??_$ic".nc")
-        for stat in avg max min
+        for stat in avg max min ttl
         do
             ncra -O -y $stat $inmons $summdir/$var"_"$ic"_"$stat".nc"
         done

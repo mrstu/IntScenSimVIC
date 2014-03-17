@@ -1,0 +1,8 @@
+EVAP sum ttl
+RUNOFF sum ttl
+BASEFLOW sum ttl
+SOIL_MOIST1 sum ttl
+SOIL_MOIST2 sum ttl
+SOIL_MOIST3 sum ttl
+SWE sum ttl
+PREC sum ttl

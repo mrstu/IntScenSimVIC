@@ -1,0 +1,6 @@
+TMIN sum ttl
+TMIN max max min
+TMAX sum ttl
+WIND sum ttl
+TMAX sum ttl
+WIND sum ttl

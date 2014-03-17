@@ -17,6 +17,8 @@
 
 simpath=$1 #historical/IPSL-CM5A-MR/wus_full.1/
 
+procmon=0 # do temporary daily 2 monthly extraction 
+
 qcdir=QC
 ncdir=ncLL
 homebin=/home/$USER/bin
@@ -29,6 +31,8 @@ endyr=$(grep "$periodname" table_scen_years.txt | awk '{print $3}')
 caltables=$(ls table_calstatstats_*)
 cd ..
 
+if [ "$procmon" -eq 1 ]
+then
 (
 cd $simpath/$ncdir
 echo "From $(pwd -P)"
@@ -42,9 +46,10 @@ do
     #cmd="qsub -N log_$varname.txt -sync y $homebin/ncdays2monthsum.bsh $startyr $endyr $ivarncfile"	
 	echo $cmd >> ".d2m.cfg"
 done
-#mk_qsub.bsh ".d2m.qsub" ".d2m.cfg"
-#qsub -sync y .d2m.qsub
+mk_qsub.bsh ".d2m.qsub" ".d2m.cfg"
+qsub -sync y .d2m.qsub
 )
+fi
 
 #exit
 mkdir -p $simpath/sge_out_QC
